@@ -63,8 +63,8 @@
     const API_KEY = "AIzaSyCf9_MwNbpoBYuyjNeL-2UE77d5X5h9DwU"; 
     
   // Stabilster Endpunkt für die Flash-Serie
-const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=" + API_KEY;
-
+const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=" + API_KEY;
+    
     async function runAi(isRefining = false) {
         const genBtn = document.getElementById('generateBtn');
         const refBtn = document.getElementById('refineBtn');
@@ -138,4 +138,5 @@ const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-
 </script>
 </body>
 </html>
+
 
