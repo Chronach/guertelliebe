@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gürtel-Mobilisierungstool</title>
+    <style>
+        body { font-family: -apple-system, sans-serif; padding: 20px; line-height: 1.6; background: #f4f4f4; }
+        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: auto; }
+        h2 { color: #e63946; margin-top: 0; }
+        label { font-weight: bold; display: block; margin-top: 15px; }
+        input, textarea { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        .checkbox-group { margin-top: 10px; }
+        .checkbox-item { display: flex; align-items: center; margin-bottom: 8px; }
+        .checkbox-item input { width: auto; margin-right: 10px; }
+        button { background: #e63946; color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 20px; transition: 0.3s; }
+        button:disabled { background: #ccc; }
+        #output-section { display: none; margin-top: 25px; border-top: 2px solid #eee; padding-top: 20px; }
+        .edit-area { background: #fffbe6; border: 1px dashed #d4a017; padding: 15px; border-radius: 8px; margin-bottom: 15px; font-family: inherit; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Gürtel-Raser stoppen!</h2>
+    <p>Erstelle ein individuelles Schreiben für Sicherheit & Lebensqualität am Gürtel.</p>
+
+    <div id="input-fields">
+        <label>Dein Vorname</label>
+        <input type="text" id="userName" placeholder="z.B. Christian">
+
+        <label>Dein Wohnort (Gürtel-Abschnitt)</label>
+        <input type="text" id="userAddress" placeholder="z.B. Hernalser Gürtel">
+
+        <label>Deine Themen</label>
+        <div class="checkbox-group">
+            <div class="checkbox-item"><input type="checkbox" class="topic" value="Sicherheit & Vision Zero"> Sicherheit & Vision Zero</div>
+            <div class="checkbox-item"><input type="checkbox" class="topic" value="Endlich Schlaf (Lärmschutz)"> Endlich Schlaf (Lärmschutz)</div>
+            <div class="checkbox-item"><input type="checkbox" class="topic" value="Grüner Gürtel & Paris-Vorbild"> Grüner Gürtel & Paris-Vorbild</div>
+            <div class="checkbox-item"><input type="checkbox" class="topic" value="Fahrspur-Reduktion & Platz"> Mehr Platz für Fußgänger</div>
+        </div>
+
+        <label>Persönliches (optional)</label>
+        <textarea id="personalNote" rows="2" placeholder="z.B. Kind fast überfahren, Lärm nachts..."></textarea>
+
+        <button id="generateBtn">E-Mail Entwurf erstellen</button>
+    </div>
+
+    <div id="output-section">
+        <h3>Dein E-Mail Entwurf</h3>
+        <textarea id="emailResult" rows="12" class="edit-area"></textarea>
+        
+        <label>Text nachbessern?</label>
+        <input type="text" id="refineInstruction" placeholder="z.B. 'höflicher' oder 'kurz fassen'">
+        <button id="refineBtn" style="background: #457b9d; margin-top: 10px;">Text neu anpassen</button>
+
+        <button id="sendBtn" style="background: #2a9d8f;">E-Mail App öffnen & senden</button>
+    </div>
+</div>
+
+<script>
+    // DEIN KEY (Bitte hier nochmal sicherstellen, dass er exakt stimmt)
+    const API_KEY = "AIzaSyCf9_MwNbpoBYuyjNeL-2UE77d5X5h9DwU"; 
+    
+  // Stabilster Endpunkt für die Flash-Serie
+const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + API_KEY;
+
+    async function runAi(isRefining = false) {
+        const genBtn = document.getElementById('generateBtn');
+        const refBtn = document.getElementById('refineBtn');
+        const targetBtn = isRefining ? refBtn : genBtn;
+
+        const name = document.getElementById('userName').value;
+        const address = document.getElementById('userAddress').value;
+        const note = document.getElementById('personalNote').value;
+        const topics = Array.from(document.querySelectorAll('.topic:checked')).map(t => t.value).join(", ");
+
+        if(!name || !address) { alert("Bitte Vorname und Wohnort ausfüllen."); return; }
+
+        targetBtn.disabled = true;
+        targetBtn.innerText = "KI schreibt...";
+
+        let prompt = `Erstelle eine E-Mail für ${name} vom ${address}. Themen: ${topics}. Erfahrung: ${note}. Fokus: Vision Zero, Paris-Vorbild, Kindergarten Pfeilgasse im 8. Bezirk.`;
+
+        if (isRefining) {
+            prompt = `Überarbeite diesen Entwurf: "${document.getElementById('emailResult').value}" nach dieser Anweisung: "${document.getElementById('refineInstruction').value}".`;
+        }
+
+        try {
+            const response = await fetch(API_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }]
+                })
+            });
+
+            const data = await response.json();
+
+            // PRÜFUNG: Wenn Google einen Fehler schickt
+            if (!response.ok) {
+                alert("Google meldet Fehler: " + (data.error ? data.error.message : "Unbekannt"));
+                return;
+            }
+
+            // PRÜFUNG: Wenn die Antwort keine Texte enthält (z.B. wegen Sicherheitsfilter)
+            if (!data.candidates || !data.candidates[0]) {
+                alert("Keine Antwort erhalten. Möglicherweise wurde der Text durch Sicherheitsfilter blockiert.");
+                return;
+            }
+
+            const text = data.candidates[0].content.parts[0].text;
+            document.getElementById('emailResult').value = text;
+            document.getElementById('output-section').style.display = "block";
+            document.getElementById('input-fields').style.display = "none";
+
+        } catch (e) {
+            alert("Netzwerk-Fehler: " + e.message);
+        } finally {
+            targetBtn.disabled = false;
+            targetBtn.innerText = isRefining ? "Text neu anpassen" : "E-Mail Entwurf erstellen";
+        }
+    }
+
+    function sendMail() {
+        const text = document.getElementById('emailResult').value;
+        const recipients = "uli.sima@wien.gv.at,post@ma46.wien.gv.at,martin.fabisch@wien.gv.at,post@bv16.wien.gv.at";
+        const subject = encodeURIComponent("Sicherheit am Gürtel - Vision Zero");
+        const body = encodeURIComponent(text);
+        window.location.href = `mailto:${recipients}?subject=${subject}&body=${body}`;
+    }
+
+    // Event Listener neu binden
+    document.getElementById('generateBtn').onclick = () => runAi(false);
+    if(document.getElementById('refineBtn')) {
+        document.getElementById('refineBtn').onclick = () => runAi(true);
+    }
+</script>
+</body>
+</html>
