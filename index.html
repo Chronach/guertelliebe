@@ -63,7 +63,7 @@
     const API_KEY = "AIzaSyCf9_MwNbpoBYuyjNeL-2UE77d5X5h9DwU"; 
     
   // Stabilster Endpunkt für die Flash-Serie
-const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + API_KEY;
+const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=" + API_KEY;
 
     async function runAi(isRefining = false) {
         const genBtn = document.getElementById('generateBtn');
@@ -124,7 +124,7 @@ const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-
 
     function sendMail() {
         const text = document.getElementById('emailResult').value;
-        const recipients = "uli.sima@wien.gv.at,post@ma46.wien.gv.at,martin.fabisch@wien.gv.at,post@bv16.wien.gv.at";
+        const recipients = "test@test.gv.at";
         const subject = encodeURIComponent("Sicherheit am Gürtel - Vision Zero");
         const body = encodeURIComponent(text);
         window.location.href = `mailto:${recipients}?subject=${subject}&body=${body}`;
@@ -138,3 +138,4 @@ const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-
 </script>
 </body>
 </html>
+
